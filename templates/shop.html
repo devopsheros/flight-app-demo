@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Shop</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='style.css') }}">
+</head>
+<body class="body">
+<h1>Hello {{ name }}</h1>
+<div class="container" style="float: right; width: 300px;">
+    <form action="https://flight-app.devopsheros.com/ticket" method="post">
+        <h3>Buy Ticket</h3>
+        <label>Departure:</label>
+        <input type="text" name="buy-departure" placeholder="where to ..">
+        <label>Arrival:</label>
+        <input type="text" name="buy-destination" placeholder="where to ..">
+        <button type="submit">Search Ticket</button>
+    </form>
+</div>
+<div class="container" style="float: left; width: 300px;">
+    <form action="https://flight-app.devopsheros.com/ticket" method="post">
+        <h3>Delete Ticket</h3>
+        <label>Departure:</label>
+        <input type="text" name="delete-departure" placeholder="where to ..">
+        <label>Arrival:</label>
+        <input type="text" name="delete-destination" placeholder="where to ..">
+        <button type="submit">Search Ticket</button>
+    </form>
+</div>
+{% if flights|length > 0 %}
+<div class="lower-page">
+    <h1>Your Flights</h1>
+    <div class="container">
+        <table>
+        {% for flight in flights %}
+        <tr>
+          <th>departure</th>
+          <th>destination</th>
+          <th>departure-time</th>
+          <th>arrival-time</th>
+        </tr>
+        <tr>
+            <td> {{ flight[0] }}</td>
+            <td> {{ flight[1] }}</td>
+            <td> {{ flight[2] }}</td>
+            <td> {{ flight[3] }}</td>
+        </tr>
+            {% endfor %}
+        </table>
+    </div>
+</div>
+{% endif %}
+</body>
+</html>

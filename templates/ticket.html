@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Ticket</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='style.css') }}">
+</head>
+<body class="body">
+{% if action == 'buy' %}
+<h1>Flights</h1>
+<div class="container">
+    {% for flight in available_flights %}
+    <form action="https://flight-app.devopsheros.com/payment" method="post">
+        <table>
+            <tr>
+                <th>departure</th>
+                <th>destination</th>
+                <th>departure-time</th>
+                <th>arrival-time</th>
+                <th>price</th>
+            </tr>
+            <tr>
+                <td> {{ flight['departure'] }}</td>
+                <input type="hidden" name="departure" value="{{ flight['departure'] }}">
+                <td> {{ flight['destination'] }}</td>
+                <input type="hidden" name="destination" value="{{ flight['destination'] }}">
+                <td> {{ flight['departure_time'] }}</td>
+                <input type="hidden" name="departure_time" value="{{ flight['departure_time'] }}">
+                <td> {{ flight['arrival_time'] }}</td>
+                <input type="hidden" name="arrival_time" value="{{ flight['arrival_time'] }}">
+                <td> {{ flight['price'] }}</td>
+                <input type="hidden" name="price" value="{{ flight['price'] }}">
+            </tr>
+        </table>
+        <button type="submit">Purchase</button>
+    </form>
+    {% endfor %}
+</div>
+{% endif %}
+{% if action == 'delete' %}
+<h1>Flight Cancelation</h1>
+<div class="container">
+<table>
+    <tr>
+        <th>departure</th>
+        <th>destination</th>
+        <th>departure-time</th>
+        <th>arrival-time</th>
+    </tr>
+    <tr>
+        <td> {{ flight[0][2] }}</td>
+        <td> {{ flight[0][3] }}</td>
+        <td> {{ flight[0][4] }}</td>
+        <td> {{ flight[0][5] }}</td>
+    </tr>
+</table>
+</div>
+<br>
+<br>
+<div class="container">
+    <form action="https://flight-app.devopsheros.com/delete" method="post">
+        <label>Ticket ID:</label>
+        <input type="text" name="delete-ticket-id" placeholder="enter ticket ID">
+        <button type="submit">Delete Ticket</button>
+    </form>
+</div>
+{% endif %}
+</body>
+</html>
