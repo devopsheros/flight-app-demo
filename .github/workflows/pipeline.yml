@@ -81,7 +81,7 @@ jobs:
       - name: Deploy Application
         run: |
           gcloud config set project ${{ secrets.GCP_PROJECT }}
-          gcloud contanier clusters get-credentials flight-app-demo-cluster --zone us-central1-a
+          gcloud container clusters get-credentials flight-app-demo-cluster --zone us-central1-a
           gcloud components install kubectl
           STATIC_IP=$(gcloud compute addresses describe app-lb --region=us-central1 --format "value(address)")
           
