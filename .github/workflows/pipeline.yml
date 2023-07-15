@@ -61,7 +61,7 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/flight-app-demo:2.5.7
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/flight-app-demo:2.5.8
 
       - id: auth
         name: Authenticate to Google Cloud
@@ -92,7 +92,7 @@ jobs:
           kubectl apply -f ./k8s/flask.yaml
           sleep 20
           kubectl get po
-          
+            
           helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
           helm install my-ingress-nginx ingress-nginx/ingress-nginx --set controller.service.loadBalancerIP=$STATIC_IP --version 4.6.1
           
