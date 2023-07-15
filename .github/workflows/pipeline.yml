@@ -108,15 +108,15 @@ jobs:
 
       - name: Wait for changing nameservers
         uses: trstringer/manual-approval@v1
-          with:
-            secret: ${{ secrets.GITHUB_TOKEN }}
-            approvers: devopsheros
-            minimum-approvals: 1
-            issue-title: Pause Wrokflow
-            issue-body: "Please change the nameserver on GoDaddy"
-            exclude-workflow-initiator-as-approver: false
-            additional-approved-words: 'approved'
-            additional-denied-words: 'denied'
+        with:
+          secret: ${{ secrets.GITHUB_TOKEN }}
+          approvers: devopsheros
+          minimum-approvals: 1
+          issue-title: Pause Wrokflow
+          issue-body: "Please change the nameserver on GoDaddy"
+          exclude-workflow-initiator-as-approver: false
+          additional-approved-words: 'approved'
+          additional-denied-words: 'denied'
 
       - name: Expose app
         run: | 
