@@ -35,13 +35,91 @@ jobs:
         env:
           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
 
-      - name: apply
-        id: apply
+      #- name: apply
+      #  id: apply
+      #  run: |
+      #    cd terraform
+      #    terraform apply -var-file=terraform.tfvars -var='key_path=${{ secrets.GOOGLE_CREDENTIALS }}' -lock=false -auto-approve
+      #     echo ${{ steps.apply.outputs.stdout }}
+      #     echo ${{ steps.apply.outputs.stderr }}
+      #     echo ${{ steps.apply.outputs.exitcode }}
+      #  env:
+      #    GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build and push
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/flight-app-demo:2.5.7
+
+      - id: auth
+        name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GOOGLE_CREDENTIALS }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: v3.9.4
+
+
+      - name: Deploy Application
         run: |
-          cd terraform
-          terraform apply -var-file=terraform.tfvars -var='key_path=${{ secrets.GOOGLE_CREDENTIALS }}' -lock=false -auto-approve
-           echo ${{ steps.apply.outputs.stdout }}
-           echo ${{ steps.apply.outputs.stderr }}
-           echo ${{ steps.apply.outputs.exitcode }}
-        env:
-          GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+          gcloud config set project ${{ secrets.GCP_PROJECT }}
+          gcloud contanier clusters get-credentials flight-app-demo-cluster --zone us-central1-a
+          gcloud components install kubectl
+          STATIC_IP=$(gcloud compute addresses describe app-lb --region=us-central1 --format "value(address)")
+          
+          kubectl create secret generic creds --from-literal=username=postgres --from-literal=host=postgres --from-literal=db=postgres --from-literal=password=${{ secrets.POSTGRES_PASS }}
+          sleep 20
+          kubectl apply -f ./k8s/postgres.yaml
+          sleep 120
+          kubectl apply -f ./k8s/flask.yaml
+          sleep 20
+          kubectl get po
+          
+          helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+          helm install my-ingress-nginx ingress-nginx/ingress-nginx --set controller.service.loadBalancerIP=$STATIC_IP --version 4.6.1
+          
+          helm repo add jetstack https://charts.jetstack.io
+          helm repo update
+          helm install cert-manager jetstack/cert-manager --namespace cert-manager --create-namespace --version v1.12.0 --set installCRDs=true
+          
+          gcloud iam service-accounts create cert-manager-solver-pipe --display-name "cert-manager-solver-pipe"
+          gcloud projects add-iam-policy-binding devops-project-387209 --member serviceAccount:cert-manager-solver-pipe@devops-project-387209.iam.gserviceaccount.com  --role roles/dns.admin
+          gcloud iam service-accounts keys create key.json --iam-account cert-manager-solver-pipe@devops-project-387209.iam.gserviceaccount.com
+          
+          kubectl create secret generic dns-reslover-key --from-file=key.json=./key.json
+
+      - name: Wait for changing nameservers
+        uses: trstringer/manual-approval@v1
+          with:
+            secret: ${{ secrets.GITHUB_TOKEN }}
+            approvers: devopsheros
+            minimum-approvals: 1
+            issue-title: Pause Wrokflow
+            issue-body: "Please change the nameserver on GoDaddy"
+            exclude-workflow-initiator-as-approver: false
+            additional-approved-words: 'approved'
+            additional-denied-words: 'denied'
+
+      - name: Expose app
+        run: | 
+          kubectl apply -f ./k8s/issuer.yaml
+          sleep 180
+          kubectl apply -f ./k8s/ingress.yaml

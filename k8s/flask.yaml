@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: flask-app
-        image: devopsheros137/flight-app-demo:0.1.8
+        image: devopsheros137/flight-app-demo:2.5.7
         ports:
         - containerPort: 5000
         env:
