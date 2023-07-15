@@ -2,7 +2,7 @@ terraform {
   backend "gcs" {
     bucket = "flight-app-demo-bucket"
     prefix = "terraform"
-    credentials = "C:\\Users\\Alon\\PycharmProjects\\project1\\venv\\flight-app-demo\\key.json"
+    //credentials = "C:\\Users\\Alon\\PycharmProjects\\project1\\venv\\flight-app-demo\\key.json"
   }
   required_providers {
     google = {
