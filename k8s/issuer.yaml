@@ -14,4 +14,4 @@ spec:
           project: devops-project-387209
           serviceAccountSecretRef:
             name: dns-reslover-key
-            key: key.json 
+            key: key.json

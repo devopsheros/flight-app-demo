@@ -1,1 +1,47 @@
+name: application
 
+on:
+  push:
+    branches:
+      - 'main'
+
+jobs:
+  application:
+    name: pipeline
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      - name: init
+        run: |
+          cd terraform
+          terraform init -backend-config="bucket=${{ secrets.BUCKET_NAME }}" -backend-config="prefix=${{ secrets.BUCKET_PREFIX }}"
+        env:
+          GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+
+      - name: plan
+        id: plan
+        run: |
+          cd terraform
+          terraform plan -var-file=terraform.tfvars -var='key_path=${{ secrets.GOOGLE_CREDENTIALS }}' -lock=false
+           echo ${{ steps.plan.outputs.stdout }}
+           echo ${{ steps.plan.outputs.stderr }}
+           echo ${{ steps.plan.outputs.exitcode }}
+        env:
+          GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+
+      - name: apply
+        id: apply
+        run: |
+          cd terraform
+          terraform apply -var-file=terraform.tfvars -var='key_path=${{ secrets.GOOGLE_CREDENTIALS }}' -lock=false -auto-approve
+           echo ${{ steps.apply.outputs.stdout }}
+           echo ${{ steps.apply.outputs.stderr }}
+           echo ${{ steps.apply.outputs.exitcode }}
+        env:
+          GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
